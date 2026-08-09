@@ -1,6 +1,7 @@
 import os
 import threading
 import time
+from datetime import date, timedelta
 
 from flask import Flask, jsonify, render_template, request
 
@@ -150,6 +151,42 @@ def api_sector():
             "gainers": gainers,
             "losers": losers,
         })
+    except Exception as e:
+        return jsonify({"ok": False, "error": "NSE error: %s" % e}), 502
+
+
+@app.route("/api/history")
+def api_history():
+    symbol = request.args.get("symbol", "").strip().upper()
+    days_raw = request.args.get("days", "90")
+    try:
+        days = min(max(int(days_raw), 5), 365)
+    except ValueError:
+        days = 90
+    if not symbol:
+        return jsonify({"ok": False, "error": "Missing symbol"}), 400
+    try:
+        to_date = date.today()
+        from_date = to_date - timedelta(days=days)
+        rows = _cached(
+            "hist:" + symbol + ":" + str(days),
+            300,
+            lambda: nse_client.fetch_equity_historical_data(
+                symbol, from_date, to_date
+            ),
+        )
+        candles = [
+            {
+                "date": r.get("mtimestamp"),
+                "open": r.get("chOpeningPrice"),
+                "high": r.get("chTradeHighPrice"),
+                "low": r.get("chTradeLowPrice"),
+                "close": r.get("chClosingPrice"),
+                "volume": r.get("chTotTradedQty"),
+            }
+            for r in rows
+        ]
+        return jsonify({"ok": True, "symbol": symbol, "candles": candles})
     except Exception as e:
         return jsonify({"ok": False, "error": "NSE error: %s" % e}), 502
 
