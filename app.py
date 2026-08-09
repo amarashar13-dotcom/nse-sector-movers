@@ -17,6 +17,9 @@ nse_client = NSE(download_folder=DOWNLOAD_FOLDER)
 
 # (canonical index name shown on the website, name used by the constituents API)
 SECTOR_INDICES = [
+    ("NIFTY 50", "NIFTY 50"),
+    ("NIFTY MIDCAP 100", "NIFTY MIDCAP 100"),
+    ("NIFTY SMALLCAP 250", "NIFTY SMALLCAP 250"),
     ("NIFTY BANK", "NIFTY BANK"),
     ("NIFTY FINANCIAL SERVICES", "NIFTY FIN SERVICE"),
     ("NIFTY PRIVATE BANK", "NIFTY PVT BANK"),
